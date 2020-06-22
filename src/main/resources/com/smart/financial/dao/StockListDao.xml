@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smart.financial.dao.StockListDao">
+    <insert id="insert">
+        insert into d_stock_list_t(ts_code, symbol, name, area, industry, fullname, enname, market, exchange, curr_type,
+        list_status, list_date, delist_date, is_hs)
+        values
+        <foreach collection="stockListMOList" item="stock" separator="," index="index">
+            (#{stock.tsCode},#{stock.symbol},#{stock.name},#{stock.area},#{stock.industry},#{stock.fullname},
+            #{stock.enname},#{stock.market},#{stock.exchange},#{stock.currType},#{stock.listStatus},#{stock.listDate},#{stock.delistDate},#{stock.isHs})
+        </foreach>
+    </insert>
+
+    <delete id="delete">
+        delete from d_stock_list_t;
+    </delete>
+
+    <select id="getAll" resultType="com.smart.financial.model.StockListMO">
+        select * from d_stock_list_t
+    </select>
+
+    <select id="getByCondition" resultMap="stockListMap">
+        select t.* from d_stock_list_t t
+        <where>
+            <if test="stockListMO != null">
+                <if test="stockListMO.tsCode != null">
+                    t.ts_code = #{stockListMO.tsCode}
+                </if>
+                <if test="stockListMO.area != null">
+                    t.area = #{stockListMO.area}
+                </if>
+                <if test="stockListMO.industry != null">
+                    t.industry = #{stockListMO.industry}
+                </if>
+                <if test="stockListMO.listStatus != null">
+                    t.list_status = #{stockListMO.listStatus}
+                </if>
+            </if>
+        </where>
+    </select>
+
+    <resultMap id="stockListMap" type="com.smart.financial.model.StockListMO">
+        <result property="tsCode" column="ts_code"/>
+        <result property="symbol" column="symbol"/>
+        <result property="name" column="name"/>
+        <result property="area" column="area"/>
+        <result property="industry" column="industry"/>
+        <result property="fullname" column="fullname"/>
+        <result property="enname" column="enname"/>
+        <result property="market" column="market"/>
+        <result property="exchange" column="exchange"/>
+        <result property="currType" column="curr_type"/>
+        <result property="listStatus" column="list_status"/>
+        <result property="listDate" column="list_date"/>
+        <result property="delistDate" column="delist_date"/>
+        <result property="isHs" column="is_hs"/>
+    </resultMap>
+</mapper>

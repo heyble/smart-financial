@@ -1,0 +1,107 @@
+package com.smart.financial.analyzer;
+
+import com.smart.financial.model.MacdDailyRecommendationMO;
+import com.smart.financial.model.MacdMO;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
+
+public class MacdAnalyzer {
+
+    public MacdDailyRecommendationMO analyzeRecommendation(List<MacdMO> macdList){
+
+        if (CollectionUtils.isEmpty(macdList) || macdList.size() < 3) {
+            return null;
+        }
+
+        final MacdMO currentMacd = macdList.get(0);
+        final MacdMO previousMacd = macdList.get(1);
+
+        // macd由负转正
+        // macd前三天为负
+        // macd前五天为负
+        // dif dea 为负
+        // dif dea 为正
+        if (Double.parseDouble(currentMacd.getMacd()) >= 0D && Double.parseDouble(previousMacd.getMacd()) < 0D) {
+            return goldenHookAnalyze(macdList);
+        }
+
+
+
+        // macd为负，但是今天比昨天 >=
+        // macd前三天均为 +负
+        // dif dea 为负
+        if (Double.parseDouble(currentMacd.getMacd()) >=  Double.parseDouble(previousMacd.getMacd())) {
+            return bottomCopyAnalyze(macdList);
+        }
+
+        return null;
+    }
+
+    private MacdDailyRecommendationMO bottomCopyAnalyze(List<MacdMO> macdList) {
+        int macdScore = 0;
+
+        Double previousMacdVal = 0D;
+        Double currentMacdVal;
+        for (int i = 0; i < macdList.size(); i++) {
+            if (i == macdList.size() - 1) {
+                break;
+            }
+            currentMacdVal = Double.parseDouble(macdList.get(i).getMacd()) - Double.parseDouble(macdList.get(i+1).getMacd());
+            if (currentMacdVal < previousMacdVal && i < 8) {
+                macdScore++;
+                previousMacdVal = currentMacdVal;
+            }
+        }
+
+        final MacdMO currentMacd = macdList.get(0);
+        MacdDailyRecommendationMO recommendationMO = new MacdDailyRecommendationMO();
+        recommendationMO.setIntersection(0);
+
+        int difAndDeaScore = 3;
+        if (Double.parseDouble(currentMacd.getMacd()) > 0D) {
+            difAndDeaScore = 5;
+            recommendationMO.setIntersection(1);
+        }
+
+        recommendationMO.setDate(currentMacd.getDate());
+        recommendationMO.setType(2);
+        recommendationMO.setExponent(macdScore+difAndDeaScore);
+        recommendationMO.setTsCode(currentMacd.getTsCode());
+        return recommendationMO;
+    }
+
+    private MacdDailyRecommendationMO goldenHookAnalyze(List<MacdMO> macdList) {
+
+        MacdDailyRecommendationMO recommendationMO = new MacdDailyRecommendationMO();
+
+        int macdScore = 0;
+
+        // macd前三天为负
+        // macd前五天为负
+        for (int i = 1; i < macdList.size(); i++) {
+            final MacdMO macdMO = macdList.get(i);
+            if (Double.parseDouble(macdMO.getMacd()) < 0D && i <= 8) {
+                macdScore++ ;
+            }
+        }
+
+        int difAndDeaScore = 0;
+        // dif dea 为负
+        // dif dea 为正
+        final MacdMO currentMacd = macdList.get(0);
+        if (Double.parseDouble(currentMacd.getDif()) > 0D) {
+            difAndDeaScore = 5;
+            recommendationMO.setIntersection(1);
+        }else {
+            difAndDeaScore = 3;
+            recommendationMO.setIntersection(0);
+        }
+
+        recommendationMO.setDate(currentMacd.getDate());
+        recommendationMO.setType(1);
+        recommendationMO.setExponent(macdScore+difAndDeaScore);
+        recommendationMO.setTsCode(currentMacd.getTsCode());
+        return recommendationMO;
+    }
+}
