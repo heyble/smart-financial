@@ -8,6 +8,7 @@ import com.smart.financial.model.StockBaseMO;
 import com.smart.financial.model.StockListMO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.InvocationTargetException;
@@ -52,6 +53,22 @@ public class StockProxy {
 
         String request = "{ \t\"api_name\": \"stock_basic\", \t\"token\": \"a6fbbe5c78c74d284b72cfaa463143eb3f8b2ea3e21be2154823c882\", \t\"params\": { \t\t\"list_status\": \"L\" \t}, \t\"fields\": \"ts_code,symbol,name,exchange,market\" }";
         return restTemplate.postForObject(url, request, String.class);
+    }
+
+
+    public StockBaseMO getStockBase(String tsCode) throws SmartException {
+        final Date today = new Date();
+        String request = "{\"api_name\": \"daily\",\"token\": \"2bfd2e2344838353a793b3195d2faeb49e412c72cf75599aa4efe5e3\",\"params\": {\"ts_code\": \""+tsCode+"\",\"trade_date\": \""+DATE_FORMAT.format(today)+"\"},\"fields\": \"ts_code,trade_date,open,high,low,close,vol\"}";
+        final ResponseEntity<String> responseEntity = restTemplate.postForEntity(appProperties.getTushareUrl(), request, String.class);
+        if (responseEntity.getStatusCodeValue() != 200) {
+            throw new SmartException("请求代理接口失败，URL：" + appProperties.getTushareUrl() + ", " + responseEntity.getBody());
+        }
+        final String body = responseEntity.getBody();
+        final List<StockBaseMO> stockBaseMOList = carverStockBaseList(body);
+        if (CollectionUtils.isEmpty(stockBaseMOList)) {
+            return null;
+        }
+        return stockBaseMOList.get(0);
     }
 
     public List<StockBaseMO> getStockBaseList(String tsCode) throws SmartException {
