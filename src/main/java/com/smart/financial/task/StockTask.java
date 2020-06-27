@@ -1,18 +1,13 @@
 package com.smart.financial.task;
 
-import com.smart.financial.analyzer.MacdAnalyzer;
-import com.smart.financial.model.MacdDailyRecommendationMO;
-import com.smart.financial.model.MacdMO;
 import com.smart.financial.model.StockListMO;
 import com.smart.financial.service.MacdDailyRecommendationService;
 import com.smart.financial.service.MacdService;
 import com.smart.financial.service.StockListService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +20,8 @@ public class StockTask {
     private StockListService stockListService;
     @Autowired
     private MacdDailyRecommendationService recommendationService;
+    @Autowired
+    private SmartTaskExecutor executor;
 
     // @Scheduled(cron = "0/5 * * * * ?")
     public void hello(){
@@ -41,22 +38,7 @@ public class StockTask {
         }
 
         for (StockListMO stockListMO : stockList) {
-            List<MacdMO> macdMOList = macdService.getLastTen(stockListMO.getTsCode());
-
-            if (CollectionUtils.isEmpty(macdMOList)) {
-                continue;
-            }
-
-            // 分析
-            final MacdAnalyzer macdAnalyzer = new MacdAnalyzer();
-            final MacdDailyRecommendationMO recommendationMO = macdAnalyzer.analyzeRecommendation(macdMOList);
-
-            // 写入
-            if (recommendationMO != null) {
-                List<MacdDailyRecommendationMO> recommendationMOList = new ArrayList<MacdDailyRecommendationMO>();
-                recommendationMOList.add(recommendationMO);
-                recommendationService.insert(recommendationMOList);
-            }
+            executor.execute(new AnalyzeMacdRunner(stockListMO,macdService,recommendationService));
         }
 
     }

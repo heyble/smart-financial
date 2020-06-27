@@ -1,8 +1,6 @@
 package com.smart.financial.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
-import org.springframework.context.annotation.Configuration;
 
 @ConfigurationProperties(prefix = "smart")
 public class AppProperties {

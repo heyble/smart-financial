@@ -47,10 +47,10 @@ public class MacdAnalyzer {
             if (i == macdList.size() - 1) {
                 break;
             }
-            currentMacdVal = Double.parseDouble(macdList.get(i).getMacd()) - Double.parseDouble(macdList.get(i+1).getMacd());
-            if (currentMacdVal < previousMacdVal && i < 8) {
+            currentMacdVal = Double.parseDouble(macdList.get(i).getMacd());
+            previousMacdVal = Double.parseDouble(macdList.get(i+1).getMacd());
+            if (currentMacdVal <= previousMacdVal && i < 8) {
                 macdScore++;
-                previousMacdVal = currentMacdVal;
             }
         }
 
@@ -64,9 +64,14 @@ public class MacdAnalyzer {
             recommendationMO.setIntersection(1);
         }
 
+        int attachScore = 0;
+        if (PreferredStockList.getPreferred().contains(currentMacd.getTsCode().split("\\.")[0])) {
+            attachScore = 5;
+        }
+
         recommendationMO.setDate(currentMacd.getDate());
         recommendationMO.setType(2);
-        recommendationMO.setExponent(macdScore+difAndDeaScore);
+        recommendationMO.setExponent(macdScore+difAndDeaScore+attachScore);
         recommendationMO.setTsCode(currentMacd.getTsCode());
         return recommendationMO;
     }
@@ -98,9 +103,14 @@ public class MacdAnalyzer {
             recommendationMO.setIntersection(0);
         }
 
+        int attachScore = 0;
+        if (PreferredStockList.getPreferred().contains(currentMacd.getTsCode().split("\\.")[0])) {
+            attachScore = 5;
+        }
+
         recommendationMO.setDate(currentMacd.getDate());
         recommendationMO.setType(1);
-        recommendationMO.setExponent(macdScore+difAndDeaScore);
+        recommendationMO.setExponent(macdScore+difAndDeaScore+attachScore);
         recommendationMO.setTsCode(currentMacd.getTsCode());
         return recommendationMO;
     }
