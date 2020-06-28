@@ -32,7 +32,7 @@ public class TestController {
         // return stockProxy.post(properties.getStockListUrl());
         // return stockProxy.get(properties.getStockDetailUrl());
         // task.crawlDailyDataToDb();
-        task.analyzeMacd();
+        // task.analyzeMacd();
         return "OK";
     }
 }

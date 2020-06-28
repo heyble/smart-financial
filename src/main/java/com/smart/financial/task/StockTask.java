@@ -60,6 +60,8 @@ public class StockTask {
     @Scheduled(cron = "0 0 16 * * ?")
     public void crawlDailyDataToDb(){
 
+        LOGGER.info("开始爬取日线行情");
+
         final List<StockListMO> stockList = stockListService.getAvailableList();
 
         int n = 0;
@@ -72,7 +74,7 @@ public class StockTask {
                 if (null == stockBaseMO) {
                      n++;
                      if (n>2){
-                         LOGGER.info("今天是节假日");
+                         LOGGER.info("结束爬取日线行情，今天是节假日");
                          break;
                      }
                      continue;
@@ -89,12 +91,12 @@ public class StockTask {
                 LOGGER.error("爬取日线行情出错, tsCode:"+stockListMO.getTsCode(),e);
             }
         }
+        LOGGER.info("结束爬取日线行情");
     }
 
     @Scheduled(cron = "0 0 17 * * ?")
     public void analyzeMacd(){
-
-        // System.out.println("macd analyze");
+        LOGGER.info("开始异步执行日推任务");
         final List<StockListMO> stockList = stockListService.getAvailableList();
 
         if (CollectionUtils.isEmpty(stockList)) {
@@ -109,7 +111,7 @@ public class StockTask {
                     break;
                 }
                 if (i == 2){
-                    LOGGER.info("今天是节假日");
+                    LOGGER.info("结束异步执行日推任务，今天是节假日");
                     return;
                 }
             }
@@ -117,6 +119,7 @@ public class StockTask {
             for (StockListMO stockListMO : stockList) {
                 executor.execute(new AnalyzeMacdRunner(stockListMO,macdService,recommendationService));
             }
+            LOGGER.info("结束异步执行日推任务");
         } catch (Exception e) {
             LOGGER.error("每日推荐计算出错", e);
         }

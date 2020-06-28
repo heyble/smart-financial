@@ -69,9 +69,15 @@ public class MacdAnalyzer {
             attachScore = 5;
         }
 
+        int totalScore = macdScore+difAndDeaScore+attachScore;
+
+        if (totalScore < 9){
+            return null;
+        }
+
         recommendationMO.setDate(currentMacd.getDate());
         recommendationMO.setType(2);
-        recommendationMO.setExponent(macdScore+difAndDeaScore+attachScore);
+        recommendationMO.setExponent(totalScore);
         recommendationMO.setTsCode(currentMacd.getTsCode());
         return recommendationMO;
     }
@@ -108,9 +114,15 @@ public class MacdAnalyzer {
             attachScore = 5;
         }
 
+        int totalScore = macdScore+difAndDeaScore+attachScore;
+
+        if (totalScore < 9){
+            return null;
+        }
+
         recommendationMO.setDate(currentMacd.getDate());
         recommendationMO.setType(1);
-        recommendationMO.setExponent(macdScore+difAndDeaScore+attachScore);
+        recommendationMO.setExponent(totalScore);
         recommendationMO.setTsCode(currentMacd.getTsCode());
         return recommendationMO;
     }
