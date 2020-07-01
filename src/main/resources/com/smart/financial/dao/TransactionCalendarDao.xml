@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smart.financial.dao.TransactionCalendarDao">
+
+    <resultMap id="transactionCalendarMap" type="com.smart.financial.model.TransactionCalendarMO">
+        <result property="exchange" column="exchange"/>
+        <result property="calDate" column="cal_date"/>
+        <result property="isOpen" column="is_open"/>
+        <result property="pretradeDate" column="pretrade_date"/>
+    </resultMap>
+
+    <insert id="insert">
+        insert into d_transaction_calendar_t(exchange,cal_date,is_open,pretrade_date)
+        values
+        <foreach collection="transactionCalendarList" item="calendar" separator="," index="index">
+            (#{calendar.exchange},#{calendar.calDate},#{calendar.isOpen},#{calendar.pretradeDate})
+        </foreach>
+    </insert>
+
+    <select id="getByDate" resultMap="transactionCalendarMap">
+        select t.exchange, t.cal_date, t.is_open, t.pretrade_date
+        from d_transaction_calendar_t t
+        where t.cal_date = #{date}
+    </select>
+
+</mapper>

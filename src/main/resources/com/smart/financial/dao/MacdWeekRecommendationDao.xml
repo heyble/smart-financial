@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smart.financial.dao.MacdWeekRecommendationDao">
+
+    <resultMap id="macdMap" type="com.smart.financial.model.MacdWeekRecommendationMO">
+        <result property="tsCode" column="ts_code"/>
+        <result property="date" column="date"/>
+        <result property="type" column="type"/>
+        <result property="intersection" column="intersection"/>
+        <result property="exponent" column="exponent"/>
+    </resultMap>
+
+    <insert id="insert">
+        insert into d_macd_week_recommendation_t(ts_code,date,type,intersection,exponent)
+        values
+        <foreach collection="recommendationMOS" item="macd" separator="," index="index">
+            (#{macd.tsCode},#{macd.date},#{macd.type},#{macd.intersection},#{macd.exponent})
+        </foreach>
+    </insert>
+
+    <select id="getByCondition" resultMap="macdMap">
+        select t.ts_code,t.date,t.type,t.intersection,t.exponent,st.name,st.symbol
+        from d_macd_week_recommendation_t t
+        inner join d_stock_list_t st
+        on t.ts_code = st.ts_code
+        <where>
+            <if test="recommendationMO">
+                <if test="recommendationMO.tsCode != null">
+                    t.ts_code = #{recommendationMO.tsCode}
+                </if>
+                <if test="recommendationMO.date != null">
+                    t.date = #{recommendationMO.date}
+                </if>
+                <if test="recommendationMO.type != null">
+                    t.type = #{recommendationMO.type}
+                </if>
+            </if>
+        </where>
+    </select>
+
+    <select id="getByDateDesc" resultMap="macdMap">
+        select t.ts_code,t.date,t.type,t.intersection,t.exponent
+        from d_macd_week_recommendation_t t
+        where t.date = #{dateStr}
+        <if test="type != null">
+            and t.type = #{type}
+        </if>
+        order by t.exponent desc
+    </select>
+</mapper>

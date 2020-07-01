@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.smart.financial.dao.StockBaseDao">
+<mapper namespace="com.smart.financial.dao.StockWeekDao">
 
-    <resultMap id="stockBaseMap" type="com.smart.financial.model.StockBaseMO">
+    <resultMap id="stockBaseMap" type="com.smart.financial.model.StockWeekMO">
         <result property="tsCode" column="ts_code"/>
         <result property="tradeDate" column="trade_date"/>
         <result property="open" column="open"/>
@@ -14,18 +14,14 @@
     </resultMap>
 
     <insert id="insert">
-        insert into d_stock_base_t(ts_code, trade_date, `open`, high, low, `close`, vol)
+        insert into d_stock_week_t(ts_code, trade_date, `open`, high, low, `close`, vol)
         values
-        <foreach collection="stockBaseList" item="stock" separator="," index="index">
+        <foreach collection="stockWeekList" item="stock" separator="," index="index">
             (#{stock.tsCode},#{stock.tradeDate},#{stock.open},#{stock.high},#{stock.low},#{stock.close},#{stock.vol})
         </foreach>
     </insert>
 
     <select id="getByTsCode" resultMap="stockBaseMap">
-        select * from d_stock_base_t t where t.ts_code = #{tsCode} order by t.trade_date desc
-    </select>
-
-    <select id="getByTsCodeAndDate" resultMap="stockBaseMap">
-        select * from d_stock_base_t t where t.ts_code = #{tsCode} and t.trade_date = #{date}
+        select * from d_stock_week_t t where t.ts_code = #{tsCode} order by t.trade_date desc
     </select>
 </mapper>

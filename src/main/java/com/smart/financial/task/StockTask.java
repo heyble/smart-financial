@@ -1,22 +1,34 @@
 package com.smart.financial.task;
 
+import com.smart.financial.analyzer.MacdAnalyzer;
+import com.smart.financial.analyzer.MacdWeekAnalyzer;
 import com.smart.financial.calculation.MacdCalc;
+import com.smart.financial.common.SmartException;
 import com.smart.financial.model.MacdMO;
 import com.smart.financial.model.StockBaseMO;
 import com.smart.financial.model.StockListMO;
+import com.smart.financial.model.StockWeekMO;
+import com.smart.financial.model.TransactionCalendarMO;
 import com.smart.financial.proxy.StockProxy;
 import com.smart.financial.service.MacdDailyRecommendationService;
 import com.smart.financial.service.MacdService;
+import com.smart.financial.service.MacdWeekRecommendationService;
+import com.smart.financial.service.MacdWeekService;
 import com.smart.financial.service.StockBaseService;
 import com.smart.financial.service.StockListService;
+import com.smart.financial.service.StockWeekService;
+import com.smart.financial.service.TransactionCalendarService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,7 +47,15 @@ public class StockTask {
     @Autowired
     private StockBaseService stockBaseService;
     @Autowired
+    private StockWeekService stockWeekService;
+    @Autowired
     private StockProxy stockProxy;
+    @Autowired
+    private MacdWeekService macdWeekService;
+    @Autowired
+    private MacdWeekRecommendationService weekRecommendationService;
+    @Autowired
+    private TransactionCalendarService transactionCalendarService;
     private static final Logger LOGGER = LoggerFactory.getLogger(StockProxy.class);
 
     // @Scheduled(cron = "0/5 * * * * ?")
@@ -57,28 +77,22 @@ public class StockTask {
         macdService.insert(insertMacdList);
     }
 
-    @Scheduled(cron = "0 0 16 * * ?")
+    @Scheduled(cron = "0 0 22 * * ?")
     public void crawlDailyDataToDb(){
 
         LOGGER.info("开始爬取日线行情");
 
         final List<StockListMO> stockList = stockListService.getAvailableList();
 
-        int n = 0;
+        // 如果是节假日就跳过
+        if (!transactionCalendarService.isTransactionDay()) {
+            LOGGER.info("今天不是交易日");
+            return;
+        }
 
         for (StockListMO stockListMO : stockList) {
             try {
-                // 如果是节假日就跳过,查询3次都是null判断为节假日
                 StockBaseMO stockBaseMO = stockProxy.getStockBase(stockListMO.getTsCode());
-
-                if (null == stockBaseMO) {
-                     n++;
-                     if (n>2){
-                         LOGGER.info("结束爬取日线行情，今天是节假日");
-                         break;
-                     }
-                     continue;
-                }
 
                 // 插入数据库
                 List<StockBaseMO> stockBaseMOList = new ArrayList<>();
@@ -94,7 +108,7 @@ public class StockTask {
         LOGGER.info("结束爬取日线行情");
     }
 
-    @Scheduled(cron = "0 0 17 * * ?")
+    @Scheduled(cron = "0 0 23 * * ?")
     public void analyzeMacd(){
         LOGGER.info("开始异步执行日推任务");
         final List<StockListMO> stockList = stockListService.getAvailableList();
@@ -103,26 +117,104 @@ public class StockTask {
             return;
         }
 
-        try {
-            // 如果是节假日就跳过
-            for (int i = 0; i < 3; i++) {
-                StockBaseMO stockBaseMO = stockProxy.getStockBase(stockList.get(i).getTsCode());
-                if (null != stockBaseMO) {
-                    break;
-                }
-                if (i == 2){
-                    LOGGER.info("结束异步执行日推任务，今天是节假日");
-                    return;
-                }
-            }
-
-            for (StockListMO stockListMO : stockList) {
-                executor.execute(new AnalyzeMacdRunner(stockListMO,macdService,recommendationService));
-            }
-            LOGGER.info("结束异步执行日推任务");
-        } catch (Exception e) {
-            LOGGER.error("每日推荐计算出错", e);
+        // 如果是节假日就跳过
+        if (!transactionCalendarService.isTransactionDay()) {
+            LOGGER.info("今天不是交易日");
+            return;
         }
 
+        for (StockListMO stockListMO : stockList) {
+            executor.execute(new AnalyzeMacdRunner(stockListMO,macdService,recommendationService,new MacdAnalyzer()));
+        }
+        LOGGER.info("结束异步执行日推任务");
+
+    }
+
+
+    @Scheduled(cron = "0 0 02 * * ?")
+    public void crawlWeekDataToDb(){
+        LOGGER.info("开始爬取周线行情");
+
+        // 非交易日的第一天才执行任务
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        String format = df.format(new Date());
+        final TransactionCalendarMO byDate = transactionCalendarService.getByDate(format);
+        if (byDate.getIsOpen() == 1) {
+            LOGGER.info("交易日");
+            return;
+        }
+
+        final List<StockListMO> stockList = stockListService.getAvailableList();
+
+        format = df.format(byDate.getPretradeDate());
+        TransactionCalendarMO preDate = transactionCalendarService.getByDate(format);
+        if (preDate.getIsOpen() == 1) {
+            for (StockListMO stockListMO : stockList) {
+                try {
+                    StockBaseMO stockBaseMO = stockBaseService.getByTsCodeAndDate("",df.format(preDate.getCalDate()));
+
+                    // 插入数据库
+                    List<StockWeekMO> stockWeekMOS = new ArrayList<>();
+                    StockWeekMO stockWeekMO = new StockWeekMO();
+                    BeanUtils.copyProperties(stockBaseMO,stockWeekMO);
+                    stockWeekMOS.add(stockWeekMO);
+                    stockWeekService.insert(stockWeekMOS);
+
+                    // 计算macd
+                    calcWeekMacd2Db(stockWeekMO);
+                } catch (Exception e) {
+                    LOGGER.error("爬取周线行情出错, tsCode:"+stockListMO.getTsCode(),e);
+                }
+            }
+            LOGGER.info("结束爬取周线行情");
+        }
+        LOGGER.info("非交易日");
+
+    }
+
+
+    // @Scheduled(cron = "0 0 03 * * ?")
+    public void analyzeMacdWeek(){
+        LOGGER.info("开始异步执行周线任务");
+
+        // 非交易日的第一天才执行任务
+        // DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        // String format = df.format(new Date());
+        // final TransactionCalendarMO byDate = transactionCalendarService.getByDate(format);
+        // if (byDate.getIsOpen() == 1) {
+        //     LOGGER.info("交易日");
+        //     return;
+        // }
+
+        final List<StockListMO> stockList = stockListService.getAvailableList();
+
+        if (CollectionUtils.isEmpty(stockList)) {
+            return;
+        }
+
+        // format = df.format(byDate.getPretradeDate());
+        // TransactionCalendarMO preDate = transactionCalendarService.getByDate(format);
+        // if (preDate.getIsOpen() == 1) {
+            for (StockListMO stockListMO : stockList) {
+                executor.execute(new AnalyzeMacdWeekRunner(stockListMO,macdWeekService,weekRecommendationService,new MacdWeekAnalyzer()));
+            }
+            LOGGER.info("结束异步执行周线任务");
+        // }
+        // LOGGER.info("非交易日");
+    }
+
+
+    private void calcWeekMacd2Db(StockWeekMO stockWeekMO){
+        final List<MacdMO> macdMOList = macdWeekService.getLastTen(stockWeekMO.getTsCode());
+        if (CollectionUtils.isEmpty(macdMOList)) {
+            return;
+        }
+        final MacdCalc macdCalc = new MacdCalc(macdMOList.get(0), BigDecimal.valueOf(stockWeekMO.getClose()));
+        final MacdMO macdMO = macdCalc.calcMACD(12, 26, 9);
+        List<MacdMO> insertMacdList = new ArrayList<>(1);
+        macdMO.setTsCode(stockWeekMO.getTsCode());
+        macdMO.setDate(stockWeekMO.getTradeDate());
+        insertMacdList.add(macdMO);
+        macdWeekService.insert(insertMacdList);
     }
 }

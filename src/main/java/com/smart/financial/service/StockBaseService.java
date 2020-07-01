@@ -20,4 +20,8 @@ public class StockBaseService {
     public List<StockBaseMO> getByTsCode(String tsCode){
         return stockBaseDao.getByTsCode(tsCode);
     }
+
+    public StockBaseMO getByTsCodeAndDate(String tsCode, String date) {
+        return stockBaseDao.getByTsCodeAndDate(tsCode,date);
+    }
 }

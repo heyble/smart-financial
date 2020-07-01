@@ -32,4 +32,23 @@ public class DataInitController {
         dataInitService.initMacd();
         return new Response<>(200,"OK");
     }
+
+    @RequestMapping("/stockWeek")
+    public Response<?> initStockWeek() throws SmartException {
+        dataInitService.initStockWeek();
+        return new Response<>(200, "OK");
+    }
+
+    @RequestMapping("/macdWeek")
+    public Response<?> initMacdWeek(){
+        dataInitService.initMacdWeek();
+        return new Response<>(200,"OK");
+    }
+
+
+    @RequestMapping("/transactionCalendar")
+    public Response<?> initTransactionCalendar() throws SmartException {
+        dataInitService.initTransactionCalendar();
+        return new Response<>(200,"OK");
+    }
 }

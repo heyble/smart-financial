@@ -2,24 +2,28 @@ package com.smart.financial.task;
 
 import com.smart.financial.analyzer.MacdAnalyzer;
 import com.smart.financial.analyzer.RecommendationAnalyzer;
+import com.smart.financial.dao.MacdWeekDao;
 import com.smart.financial.model.MacdDailyRecommendationMO;
 import com.smart.financial.model.MacdMO;
+import com.smart.financial.model.MacdWeekRecommendationMO;
 import com.smart.financial.model.StockListMO;
 import com.smart.financial.service.MacdDailyRecommendationService;
 import com.smart.financial.service.MacdService;
+import com.smart.financial.service.MacdWeekRecommendationService;
+import com.smart.financial.service.MacdWeekService;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnalyzeMacdRunner implements Runnable {
+public class AnalyzeMacdWeekRunner implements Runnable {
 
     private StockListMO stockListMO;
-    private MacdService macdService;
-    private MacdDailyRecommendationService recommendationService;
-    private RecommendationAnalyzer<MacdDailyRecommendationMO> recommendationAnalyzer;
+    private MacdWeekService macdService;
+    private MacdWeekRecommendationService recommendationService;
+    private RecommendationAnalyzer<MacdWeekRecommendationMO> recommendationAnalyzer;
 
-    public AnalyzeMacdRunner(StockListMO stockListMO, MacdService macdService, MacdDailyRecommendationService recommendationService, RecommendationAnalyzer<MacdDailyRecommendationMO> recommendationAnalyzer) {
+    public AnalyzeMacdWeekRunner(StockListMO stockListMO, MacdWeekService macdService, MacdWeekRecommendationService recommendationService, RecommendationAnalyzer<MacdWeekRecommendationMO> recommendationAnalyzer) {
         this.stockListMO = stockListMO;
         this.macdService = macdService;
         this.recommendationService = recommendationService;
@@ -35,12 +39,12 @@ public class AnalyzeMacdRunner implements Runnable {
         }
 
         // 分析
-        final MacdDailyRecommendationMO recommendationMO = recommendationAnalyzer.analyzeRecommendation(macdMOList);
+        final MacdWeekRecommendationMO recommendation = recommendationAnalyzer.analyzeRecommendation(macdMOList);
 
         // 写入
-        if (recommendationMO != null) {
-            List<MacdDailyRecommendationMO> recommendationMOList = new ArrayList<MacdDailyRecommendationMO>();
-            recommendationMOList.add(recommendationMO);
+        if (recommendation != null) {
+            List<MacdWeekRecommendationMO> recommendationMOList = new ArrayList<MacdWeekRecommendationMO>();
+            recommendationMOList.add(recommendation);
             recommendationService.insert(recommendationMOList);
         }
     }

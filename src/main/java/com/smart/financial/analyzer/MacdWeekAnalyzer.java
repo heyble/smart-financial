@@ -2,13 +2,14 @@ package com.smart.financial.analyzer;
 
 import com.smart.financial.model.MacdDailyRecommendationMO;
 import com.smart.financial.model.MacdMO;
+import com.smart.financial.model.MacdWeekRecommendationMO;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
-public class MacdAnalyzer implements RecommendationAnalyzer<MacdDailyRecommendationMO> {
+public class MacdWeekAnalyzer implements RecommendationAnalyzer<MacdWeekRecommendationMO> {
 
-    public MacdDailyRecommendationMO analyzeRecommendation(List<MacdMO> macdList){
+    public MacdWeekRecommendationMO analyzeRecommendation(List<MacdMO> macdList){
 
         if (CollectionUtils.isEmpty(macdList) || macdList.size() < 5) {
             return null;
@@ -38,13 +39,8 @@ public class MacdAnalyzer implements RecommendationAnalyzer<MacdDailyRecommendat
         return null;
     }
 
-    private MacdDailyRecommendationMO bottomCopyAnalyze(List<MacdMO> macdList) {
+    private MacdWeekRecommendationMO bottomCopyAnalyze(List<MacdMO> macdList) {
         int macdScore = 0;
-
-        if (Double.parseDouble(macdList.get(1).getMacd()) > Double.parseDouble(macdList.get(2).getMacd())
-                || Double.parseDouble(macdList.get(2).getMacd()) > Double.parseDouble(macdList.get(3).getMacd())) {
-            return null;
-        }
 
         Double previousMacdVal = 0D;
         Double currentMacdVal;
@@ -52,17 +48,15 @@ public class MacdAnalyzer implements RecommendationAnalyzer<MacdDailyRecommendat
             if (i == macdList.size() - 1) {
                 break;
             }
-
             currentMacdVal = Double.parseDouble(macdList.get(i).getMacd());
             previousMacdVal = Double.parseDouble(macdList.get(i+1).getMacd());
-
             if (currentMacdVal <= previousMacdVal && i < 8) {
                 macdScore++;
             }
         }
 
         final MacdMO currentMacd = macdList.get(0);
-        MacdDailyRecommendationMO recommendationMO = new MacdDailyRecommendationMO();
+        MacdWeekRecommendationMO recommendationMO = new MacdWeekRecommendationMO();
         recommendationMO.setIntersection(0);
 
         int difAndDeaScore = 3;
@@ -89,9 +83,14 @@ public class MacdAnalyzer implements RecommendationAnalyzer<MacdDailyRecommendat
         return recommendationMO;
     }
 
-    private MacdDailyRecommendationMO goldenHookAnalyze(List<MacdMO> macdList) {
+    private MacdWeekRecommendationMO goldenHookAnalyze(List<MacdMO> macdList) {
 
-        MacdDailyRecommendationMO recommendationMO = new MacdDailyRecommendationMO();
+        MacdWeekRecommendationMO recommendationMO = new MacdWeekRecommendationMO();
+
+        if (Double.parseDouble(macdList.get(1).getMacd()) > Double.parseDouble(macdList.get(2).getMacd())
+                || Double.parseDouble(macdList.get(2).getMacd()) > Double.parseDouble(macdList.get(3).getMacd())) {
+            return null;
+        }
 
         int macdScore = 0;
 

@@ -11,4 +11,6 @@ public interface StockBaseDao {
     void insert(@Param("stockBaseList") List<StockBaseMO> stockBaseList);
 
     List<StockBaseMO> getByTsCode(@Param("tsCode") String tsCode);
+
+    StockBaseMO getByTsCodeAndDate(@Param("tsCode")String tsCode,@Param("date") String date);
 }

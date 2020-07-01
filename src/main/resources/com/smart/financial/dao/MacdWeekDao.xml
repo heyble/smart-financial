@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smart.financial.dao.MacdWeekDao">
+
+    <resultMap id="macdMap" type="com.smart.financial.model.MacdMO">
+        <result property="tsCode" column="ts_code"/>
+        <result property="date" column="date"/>
+        <result property="dif" column="dif"/>
+        <result property="dea" column="dea"/>
+        <result property="macd" column="macd"/>
+        <result property="shortMea" column="short_mea"/>
+        <result property="longMea" column="long_mea"/>
+    </resultMap>
+
+    <insert id="insert">
+        insert into d_macd_week_t(ts_code,date,dif,dea,macd,short_mea,long_mea)
+        values
+        <foreach collection="macdMOList" item="macd" separator="," index="index">
+            (#{macd.tsCode},#{macd.date},#{macd.dif},#{macd.dea},#{macd.macd},#{macd.shortMea},#{macd.longMea})
+        </foreach>
+    </insert>
+
+    <select id="getOne" resultMap="macdMap">
+        select t.ts_code, date, dif, dea, macd, short_mea, long_mea
+        from d_macd_week_t t
+        where t.ts_code = #{tsCode}
+        and t.date = #{date}
+    </select>
+
+    <select id="getLastTen" resultMap="macdMap">
+        select t.* from d_macd_week_t t where t.`ts_code` = #{tsCode} order by t.`date` desc limit 10
+    </select>
+</mapper>
