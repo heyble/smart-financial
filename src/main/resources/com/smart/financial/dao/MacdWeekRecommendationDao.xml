@@ -42,10 +42,12 @@
     <select id="getByDateDesc" resultMap="macdMap">
         select t.ts_code,t.date,t.type,t.intersection,t.exponent
         from d_macd_week_recommendation_t t
-        where t.date = #{dateStr}
+        where <![CDATA[
+            t.date >= #{dateStr}
+        ]]>
         <if test="type != null">
             and t.type = #{type}
         </if>
-        order by t.exponent desc
+        order by t.`date` DESC, t.`exponent` DESC
     </select>
 </mapper>

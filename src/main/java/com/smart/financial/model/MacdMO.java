@@ -1,6 +1,7 @@
 package com.smart.financial.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class MacdMO {
     private String tsCode;
@@ -78,5 +79,19 @@ public class MacdMO {
                 ", shortMea='" + shortMea + '\'' +
                 ", longMea='" + longMea + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MacdMO macdMO = (MacdMO) o;
+        return Objects.equals(tsCode, macdMO.tsCode) &&
+                Objects.equals(date, macdMO.date);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tsCode, date);
     }
 }

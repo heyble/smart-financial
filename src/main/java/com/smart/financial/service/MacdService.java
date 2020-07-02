@@ -2,7 +2,6 @@ package com.smart.financial.service;
 
 import com.smart.financial.dao.MacdDao;
 import com.smart.financial.model.MacdMO;
-import com.smart.financial.model.StockListMO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +19,8 @@ public class MacdService {
     }
 
     public MacdMO getOne(String tsCode, Date  date){
-        return macdDao.getOne(tsCode,date);
+        // return macdDao.getOne(tsCode,date);
+        return null;
     }
 
     public List<MacdMO> getLastTen(String tsCode) {

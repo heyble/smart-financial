@@ -151,7 +151,7 @@ public class StockTask {
         if (preDate.getIsOpen() == 1) {
             for (StockListMO stockListMO : stockList) {
                 try {
-                    StockBaseMO stockBaseMO = stockBaseService.getByTsCodeAndDate("",df.format(preDate.getCalDate()));
+                    StockBaseMO stockBaseMO = stockBaseService.getByTsCodeAndDate(stockListMO.getTsCode(),df.format(preDate.getCalDate()));
 
                     // 插入数据库
                     List<StockWeekMO> stockWeekMOS = new ArrayList<>();
@@ -173,18 +173,18 @@ public class StockTask {
     }
 
 
-    // @Scheduled(cron = "0 0 03 * * ?")
+    @Scheduled(cron = "0 0 04 * * ?")
     public void analyzeMacdWeek(){
         LOGGER.info("开始异步执行周线任务");
 
         // 非交易日的第一天才执行任务
-        // DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        // String format = df.format(new Date());
-        // final TransactionCalendarMO byDate = transactionCalendarService.getByDate(format);
-        // if (byDate.getIsOpen() == 1) {
-        //     LOGGER.info("交易日");
-        //     return;
-        // }
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        String format = df.format(new Date());
+        final TransactionCalendarMO byDate = transactionCalendarService.getByDate(format);
+        if (byDate.getIsOpen() == 1) {
+            LOGGER.info("交易日");
+            return;
+        }
 
         final List<StockListMO> stockList = stockListService.getAvailableList();
 
@@ -192,15 +192,15 @@ public class StockTask {
             return;
         }
 
-        // format = df.format(byDate.getPretradeDate());
-        // TransactionCalendarMO preDate = transactionCalendarService.getByDate(format);
-        // if (preDate.getIsOpen() == 1) {
+        format = df.format(byDate.getPretradeDate());
+        TransactionCalendarMO preDate = transactionCalendarService.getByDate(format);
+        if (preDate.getIsOpen() == 1) {
             for (StockListMO stockListMO : stockList) {
                 executor.execute(new AnalyzeMacdWeekRunner(stockListMO,macdWeekService,weekRecommendationService,new MacdWeekAnalyzer()));
             }
             LOGGER.info("结束异步执行周线任务");
-        // }
-        // LOGGER.info("非交易日");
+        }
+        LOGGER.info("非交易日");
     }
 
 
