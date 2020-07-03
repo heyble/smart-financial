@@ -42,6 +42,11 @@ public class MacdWeekAnalyzer implements RecommendationAnalyzer<MacdWeekRecommen
     private MacdWeekRecommendationMO bottomCopyAnalyze(List<MacdMO> macdList) {
         int macdScore = 0;
 
+        if (Double.parseDouble(macdList.get(1).getMacd()) > Double.parseDouble(macdList.get(2).getMacd())
+                || Double.parseDouble(macdList.get(2).getMacd()) > Double.parseDouble(macdList.get(3).getMacd())) {
+            return null;
+        }
+
         Double previousMacdVal = 0D;
         Double currentMacdVal;
         for (int i = 0; i < macdList.size(); i++) {
@@ -86,11 +91,6 @@ public class MacdWeekAnalyzer implements RecommendationAnalyzer<MacdWeekRecommen
     private MacdWeekRecommendationMO goldenHookAnalyze(List<MacdMO> macdList) {
 
         MacdWeekRecommendationMO recommendationMO = new MacdWeekRecommendationMO();
-
-        if (Double.parseDouble(macdList.get(1).getMacd()) > Double.parseDouble(macdList.get(2).getMacd())
-                || Double.parseDouble(macdList.get(2).getMacd()) > Double.parseDouble(macdList.get(3).getMacd())) {
-            return null;
-        }
 
         int macdScore = 0;
 

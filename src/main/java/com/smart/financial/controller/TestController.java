@@ -31,18 +31,6 @@ public class TestController {
 
     @RequestMapping("/test")
     public String hello(){
-        task.analyzeMacdWeek();
-        return "OK";
-    }
-
-    @RequestMapping("/test1")
-    public String hello1(){
-        task.crawlDailyDataToDb();
-        return "OK";
-    }
-
-    @RequestMapping("/test2")
-    public String hello2(){
         task.analyzeMacd();
         return "OK";
     }
