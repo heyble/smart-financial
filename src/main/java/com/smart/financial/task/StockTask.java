@@ -58,9 +58,10 @@ public class StockTask {
     private TransactionCalendarService transactionCalendarService;
     private static final Logger LOGGER = LoggerFactory.getLogger(StockProxy.class);
 
-    // @Scheduled(cron = "0/5 * * * * ?")
+    @Scheduled(cron = "0/5 * 22 * * ?")
     public void hello(){
-        System.out.println(new Date());
+        // System.out.println(new Date());
+        LOGGER.info(new Date().toString());
     }
 
     private void calcDailyMacd2Db(StockBaseMO stockBaseMO){
@@ -77,7 +78,7 @@ public class StockTask {
         macdService.insert(insertMacdList);
     }
 
-    @Scheduled(cron = "0 0 22 * * ?")
+    // @Scheduled(cron = "0 30 22 * * ?")
     public void crawlDailyDataToDb(){
 
         LOGGER.info("开始爬取日线行情");
@@ -108,7 +109,7 @@ public class StockTask {
         LOGGER.info("结束爬取日线行情");
     }
 
-    @Scheduled(cron = "0 0 23 * * ?")
+    // @Scheduled(cron = "0 10 23 * * ?")
     public void analyzeMacd(){
         LOGGER.info("开始异步执行日推任务");
         final List<StockListMO> stockList = stockListService.getAvailableList();
@@ -131,7 +132,7 @@ public class StockTask {
     }
 
 
-    @Scheduled(cron = "0 0 02 * * ?")
+    // @Scheduled(cron = "0 0 02 * * ?")
     public void crawlWeekDataToDb(){
         LOGGER.info("开始爬取周线行情");
 
@@ -173,7 +174,7 @@ public class StockTask {
     }
 
 
-    @Scheduled(cron = "0 0 04 * * ?")
+    // @Scheduled(cron = "0 0 04 * * ?")
     public void analyzeMacdWeek(){
         LOGGER.info("开始异步执行周线任务");
 
