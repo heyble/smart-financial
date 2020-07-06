@@ -12,8 +12,8 @@ public class SmartTaskExecutor {
 
     private ExecutorService executorService;
 
-    private int corePoolSize = 50;
-    private int maximumPoolSize = 50;
+    private int corePoolSize = 10;
+    private int maximumPoolSize = 10;
     private long keepAliveTime = 60L;
 
     public SmartTaskExecutor() {

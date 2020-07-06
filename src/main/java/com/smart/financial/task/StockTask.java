@@ -58,11 +58,11 @@ public class StockTask {
     private TransactionCalendarService transactionCalendarService;
     private static final Logger LOGGER = LoggerFactory.getLogger(StockProxy.class);
 
-    @Scheduled(cron = "0/5 * 22 * * ?")
-    public void hello(){
-        // System.out.println(new Date());
-        LOGGER.info(new Date().toString());
-    }
+    // @Scheduled(cron = "0/5 * 22 * * ?")
+    // public void hello(){
+    //     // System.out.println(new Date());
+    //     LOGGER.info(new Date().toString());
+    // }
 
     private void calcDailyMacd2Db(StockBaseMO stockBaseMO){
         final List<MacdMO> macdMOList = macdService.getLastTen(stockBaseMO.getTsCode());
@@ -78,7 +78,7 @@ public class StockTask {
         macdService.insert(insertMacdList);
     }
 
-    // @Scheduled(cron = "0 30 22 * * ?")
+    @Scheduled(cron = "0 0 20 * * ?")
     public void crawlDailyDataToDb(){
 
         LOGGER.info("开始爬取日线行情");
@@ -107,6 +107,7 @@ public class StockTask {
             }
         }
         LOGGER.info("结束爬取日线行情");
+        analyzeMacd();
     }
 
     // @Scheduled(cron = "0 10 23 * * ?")
@@ -119,10 +120,10 @@ public class StockTask {
         }
 
         // 如果是节假日就跳过
-        if (!transactionCalendarService.isTransactionDay()) {
-            LOGGER.info("今天不是交易日");
-            return;
-        }
+        // if (!transactionCalendarService.isTransactionDay()) {
+        //     LOGGER.info("今天不是交易日");
+        //     return;
+        // }
 
         for (StockListMO stockListMO : stockList) {
             executor.execute(new AnalyzeMacdRunner(stockListMO,macdService,recommendationService,new MacdAnalyzer()));
@@ -132,7 +133,7 @@ public class StockTask {
     }
 
 
-    // @Scheduled(cron = "0 0 02 * * ?")
+    @Scheduled(cron = "0 0 02 * * ?")
     public void crawlWeekDataToDb(){
         LOGGER.info("开始爬取周线行情");
 
@@ -145,15 +146,17 @@ public class StockTask {
             return;
         }
 
-        final List<StockListMO> stockList = stockListService.getAvailableList();
 
-        format = df.format(byDate.getPretradeDate());
-        TransactionCalendarMO preDate = transactionCalendarService.getByDate(format);
+        String pretradeDate = df.format(byDate.getPretradeDate());
+        TransactionCalendarMO preDate = transactionCalendarService.getByDate(pretradeDate);
         if (preDate.getIsOpen() == 1) {
+            final List<StockListMO> stockList = stockListService.getAvailableList();
             for (StockListMO stockListMO : stockList) {
                 try {
-                    StockBaseMO stockBaseMO = stockBaseService.getByTsCodeAndDate(stockListMO.getTsCode(),df.format(preDate.getCalDate()));
-
+                    StockBaseMO stockBaseMO = stockBaseService.getByTsCodeAndDate(stockListMO.getTsCode(),pretradeDate);
+                    if (null == stockBaseMO) {
+                        continue;
+                    }
                     // 插入数据库
                     List<StockWeekMO> stockWeekMOS = new ArrayList<>();
                     StockWeekMO stockWeekMO = new StockWeekMO();
@@ -167,10 +170,9 @@ public class StockTask {
                     LOGGER.error("爬取周线行情出错, tsCode:"+stockListMO.getTsCode(),e);
                 }
             }
-            LOGGER.info("结束爬取周线行情");
         }
-        LOGGER.info("非交易日");
-
+        LOGGER.info("结束爬取周线行情");
+        analyzeMacdWeek();
     }
 
 
@@ -179,13 +181,13 @@ public class StockTask {
         LOGGER.info("开始异步执行周线任务");
 
         // 非交易日的第一天才执行任务
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        String format = df.format(new Date());
-        final TransactionCalendarMO byDate = transactionCalendarService.getByDate(format);
-        if (byDate.getIsOpen() == 1) {
-            LOGGER.info("交易日");
-            return;
-        }
+        // DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        // String format = df.format(new Date());
+        // final TransactionCalendarMO byDate = transactionCalendarService.getByDate(format);
+        // if (byDate.getIsOpen() == 1) {
+        //     LOGGER.info("交易日");
+        //     return;
+        // }
 
         final List<StockListMO> stockList = stockListService.getAvailableList();
 
@@ -193,15 +195,15 @@ public class StockTask {
             return;
         }
 
-        format = df.format(byDate.getPretradeDate());
-        TransactionCalendarMO preDate = transactionCalendarService.getByDate(format);
-        if (preDate.getIsOpen() == 1) {
+        // format = df.format(byDate.getPretradeDate());
+        // TransactionCalendarMO preDate = transactionCalendarService.getByDate(format);
+        // if (preDate.getIsOpen() == 1) {
             for (StockListMO stockListMO : stockList) {
                 executor.execute(new AnalyzeMacdWeekRunner(stockListMO,macdWeekService,weekRecommendationService,new MacdWeekAnalyzer()));
             }
             LOGGER.info("结束异步执行周线任务");
-        }
-        LOGGER.info("非交易日");
+        // }
+        // LOGGER.info("非交易日");
     }
 
 
