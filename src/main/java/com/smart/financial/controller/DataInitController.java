@@ -27,14 +27,7 @@ public class DataInitController {
 
     @RequestMapping("/stockBase")
     public Response<?> initStockBase() throws SmartException {
-        // new Thread(()->{
-        //     try {
-        //         dataInitService.initStockBase();
-        //     } catch (SmartException e) {
-        //         LOGGER.error("initStockBase错误",e);
-        //     }
-        // }).start();
-
+        dataInitService.initStockBase();
         return new Response<>(200, "OK");
     }
 

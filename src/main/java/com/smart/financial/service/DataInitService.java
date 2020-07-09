@@ -1,5 +1,6 @@
 package com.smart.financial.service;
 
+import com.smart.financial.analyzer.MacdAnalyzer;
 import com.smart.financial.calculation.MacdCalc;
 import com.smart.financial.common.SmartException;
 import com.smart.financial.dao.MacdDao;
@@ -14,9 +15,12 @@ import com.smart.financial.model.StockListMO;
 import com.smart.financial.model.StockWeekMO;
 import com.smart.financial.model.TransactionCalendarMO;
 import com.smart.financial.proxy.StockProxy;
+import com.smart.financial.task.AnalyzeMacdRunner;
+import com.smart.financial.task.SmartTaskExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -51,6 +55,15 @@ public class DataInitService {
     @Autowired
     private TransactionCalendarDao transactionCalendarDao;
 
+    @Autowired
+    private SmartTaskExecutor executor;
+
+    @Autowired
+    private MacdService macdService;
+
+    @Autowired
+    private MacdDailyRecommendationService recommendationService;
+
     @Transactional
     public void initStockList() throws SmartException {
         final List<StockListMO> stockList = stockProxy.getStockList();
@@ -63,30 +76,23 @@ public class DataInitService {
         transactionCalendarDao.insert(transactionCalendarMOS);
     }
 
+    @Async
     public void initStockBase() throws SmartException {
         final StockListMO condition = new StockListMO();
         condition.setListStatus("L");
         // condition.setTsCode("000001.SZ");
         List<StockListMO> stockList = stockListDao.getByCondition(condition);
-        // 接口每分钟只能调500次
-        long startTime = System.currentTimeMillis();
-        long endTime = 0L;
-        int n = 0;
-        try {
-            for (StockListMO stockListMO : stockList) {
-                if (n == 500){
-                    endTime = System.currentTimeMillis();
-                    if (endTime-startTime<=60000){
-                        Thread.sleep(endTime-startTime);
-                        startTime = System.currentTimeMillis();
-                        n = 0;
-                    }
-                }
+        for (StockListMO stockListMO : stockList) {
+            try {
+                // 初始化日线数据
                 initStockBase(stockListMO);
-                n++;
+                // 初始化计算macd
+                initMacd(stockListMO);
+                // 计算推荐
+                executor.execute(new AnalyzeMacdRunner(stockListMO,macdService,recommendationService,new MacdAnalyzer()));
+            } catch (Exception e) {
+                LOGGER.error("初始化日线数据异常",e);
             }
-        } catch (InterruptedException e) {
-            throw new SmartException("中断异常",e);
         }
     }
 

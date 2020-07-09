@@ -35,17 +35,11 @@ public class TestController {
 
     @RequestMapping("/test1")
     public String hello(){
-        new Thread(()->{
-            task.crawlDailyDataToDb();
-        }).start();
         return "OK";
     }
 
     @RequestMapping("/test2")
     public String hello3(){
-        new Thread(()->{
-            task.crawlWeekDataToDb();
-        }).start();
         return "OK";
     }
 }
