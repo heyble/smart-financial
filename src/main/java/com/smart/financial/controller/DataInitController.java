@@ -1,12 +1,13 @@
 package com.smart.financial.controller;
 
+import com.smart.financial.common.DateUtil;
 import com.smart.financial.common.SmartException;
 import com.smart.financial.controller.vo.Response;
 import com.smart.financial.service.DataInitService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.smart.financial.task.StockTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -15,8 +16,9 @@ public class DataInitController {
 
     @Autowired
     private DataInitService dataInitService;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataInitController.class);
+    @Autowired
+    private StockTask stockTask;
+    private boolean isInitBase = false;
 
 
     @RequestMapping("/stockList")
@@ -27,7 +29,18 @@ public class DataInitController {
 
     @RequestMapping("/stockBase")
     public Response<?> initStockBase() throws SmartException {
+        if (isInitBase) {
+            throw new SmartException("已初始化，请勿重复操作");
+        }
         dataInitService.initStockBase();
+        isInitBase = true;
+        return new Response<>(200, "OK");
+    }
+
+    @RequestMapping("/reStockBase")
+    public Response<?> initReStockBase(@RequestParam String dateStr) throws SmartException {
+        DateUtil.dateStr2DateWithException(dateStr);
+        stockTask.reCrawDailyData2Db(dateStr);
         return new Response<>(200, "OK");
     }
 

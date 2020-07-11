@@ -10,7 +10,7 @@ import java.util.List;
 public interface MacdDao {
     void insert(@Param("macdMOList") List<MacdMO> macdMOList);
 
-    List<MacdMO> getOne(@Param("tsCode")String tsCode);
+    MacdMO getOne(@Param("tsCode")String tsCode, @Param("date")String date);
 
     List<MacdMO> getLastTen(@Param("tsCode") String tsCode);
 

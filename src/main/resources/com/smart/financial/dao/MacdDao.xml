@@ -29,6 +29,7 @@
         select t.ts_code, date, dif, dea, macd, short_mea, long_mea
         from d_macd_t t
         where t.ts_code = #{tsCode}
+        and t.date = #{date}
     </select>
 
     <select id="getLastTen" resultMap="macdMap">

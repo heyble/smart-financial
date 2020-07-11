@@ -18,9 +18,9 @@ public class MacdService {
         macdDao.insert(macdMOList);
     }
 
-    public MacdMO getOne(String tsCode, Date  date){
-        // return macdDao.getOne(tsCode,date);
-        return null;
+    public MacdMO getOne(String tsCode, String  date){
+        return macdDao.getOne(tsCode,date);
+        // return null;
     }
 
     public List<MacdMO> getLastTen(String tsCode) {

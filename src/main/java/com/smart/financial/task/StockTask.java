@@ -45,6 +45,8 @@ public class StockTask {
     @Autowired
     private SmartTaskExecutor executor;
     @Autowired
+    private CrawlDataTaskExecutor crawlDataTaskExecutor;
+    @Autowired
     private StockBaseService stockBaseService;
     @Autowired
     private StockWeekService stockWeekService;
@@ -92,22 +94,33 @@ public class StockTask {
         }
 
         for (StockListMO stockListMO : stockList) {
-            try {
-                StockBaseMO stockBaseMO = stockProxy.getStockBase(stockListMO.getTsCode());
-
-                // 插入数据库
-                List<StockBaseMO> stockBaseMOList = new ArrayList<>();
-                stockBaseMOList.add(stockBaseMO);
-                stockBaseService.insert(stockBaseMOList);
-
-                // 计算macd
-                calcDailyMacd2Db(stockBaseMO);
-            } catch (Exception e) {
-                LOGGER.error("爬取日线行情出错, tsCode:"+stockListMO.getTsCode(),e);
-            }
+            crawlDataTaskExecutor.execute(new CrawlDailyDataRunner(stockListMO,
+                    stockProxy,
+                    stockBaseService,
+                    macdService,
+                    transactionCalendarService,
+                    recommendationService,
+                    new MacdAnalyzer()));
         }
         LOGGER.info("结束爬取日线行情");
-        analyzeMacd();
+    }
+
+    public void reCrawDailyData2Db(String dateStr){
+        LOGGER.info("开始爬取日线行情");
+
+        final List<StockListMO> stockList = stockListService.getAvailableList();
+
+        for (StockListMO stockListMO : stockList) {
+            crawlDataTaskExecutor.execute(new CrawlDailyDataRunner(stockListMO,
+                    stockProxy,
+                    stockBaseService,
+                    macdService,
+                    transactionCalendarService,
+                    recommendationService,
+                    new MacdAnalyzer(),
+                    dateStr));
+        }
+        LOGGER.info("结束爬取日线行情");
     }
 
     // @Scheduled(cron = "0 10 23 * * ?")

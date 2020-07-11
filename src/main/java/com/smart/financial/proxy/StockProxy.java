@@ -63,7 +63,11 @@ public class StockProxy {
 
     public StockBaseMO getStockBase(String tsCode) throws SmartException {
         final Date today = new Date();
-        String request = "{\"api_name\": \"daily\",\"token\": \"2bfd2e2344838353a793b3195d2faeb49e412c72cf75599aa4efe5e3\",\"params\": {\"ts_code\": \""+tsCode+"\",\"trade_date\": \""+DATE_FORMAT.format(today)+"\"},\"fields\": \"ts_code,trade_date,open,high,low,close,vol\"}";
+        return getStockBaseByDate(tsCode, DATE_FORMAT.format(today));
+    }
+
+    public StockBaseMO getStockBaseByDate(String tsCode, String dateStr) throws SmartException {
+        String request = "{\"api_name\": \"daily\",\"token\": \"2bfd2e2344838353a793b3195d2faeb49e412c72cf75599aa4efe5e3\",\"params\": {\"ts_code\": \""+tsCode+"\",\"trade_date\": \""+dateStr+"\"},\"fields\": \"ts_code,trade_date,open,high,low,close,vol\"}";
         final ResponseEntity<String> responseEntity = restTemplate.postForEntity(appProperties.getTushareUrl(), request, String.class);
         if (responseEntity.getStatusCodeValue() != 200) {
             throw new SmartException("请求代理接口失败，URL：" + appProperties.getTushareUrl() + ", " + responseEntity.getBody());
