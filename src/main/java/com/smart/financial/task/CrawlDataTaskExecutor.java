@@ -11,8 +11,8 @@ import java.util.concurrent.TimeUnit;
 public class CrawlDataTaskExecutor {
     private ExecutorService executorService;
 
-    private int corePoolSize = 5;
-    private int maximumPoolSize = 5;
+    private int corePoolSize = 1;
+    private int maximumPoolSize = 1;
     private long keepAliveTime = 60L;
 
     public CrawlDataTaskExecutor() {

@@ -4,6 +4,7 @@ import com.smart.financial.common.SmartException;
 import com.smart.financial.controller.vo.Response;
 import com.smart.financial.model.MacdDailyRecommendationMO;
 import com.smart.financial.service.MacdDailyRecommendationService;
+import com.smart.financial.vo.MacdDailyRecommendationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,7 +26,7 @@ public class MacdDailyRecommendationController {
     @RequestMapping("/recommendation")
     public Response<?> getRecommendation(@RequestParam(required = false) Integer type,@RequestParam String dateStr) throws SmartException {
 
-        List<MacdDailyRecommendationMO> recommendationMOList = null;
+        List<MacdDailyRecommendationVO> recommendationMOList = null;
         try {
             DateFormat dateFormat= new SimpleDateFormat("yyyy-MM-dd");
             Date date = dateFormat.parse(dateStr);

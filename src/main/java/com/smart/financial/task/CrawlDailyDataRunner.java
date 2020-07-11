@@ -78,6 +78,9 @@ public class CrawlDailyDataRunner implements Runnable {
             stockBaseMOList.add(stockBaseMO);
             stockBaseService.insert(stockBaseMOList);
 
+            // 调用接口1分钟500次 不能太快
+            Thread.sleep(100L);
+
             // 计算macdX
             calcDailyMacd2Db(stockBaseMO);
 

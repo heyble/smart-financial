@@ -2,6 +2,7 @@ package com.smart.financial.service;
 
 import com.smart.financial.dao.MacdDailyRecommendationDao;
 import com.smart.financial.model.MacdDailyRecommendationMO;
+import com.smart.financial.vo.MacdDailyRecommendationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ public class MacdDailyRecommendationService {
         return macdDailyRecommendationDao.getByCondition(recommendationMO);
     }
 
-    public List<MacdDailyRecommendationMO> getByDateDesc(Integer type, String dateStr) {
+    public List<MacdDailyRecommendationVO> getByDateDesc(Integer type, String dateStr) {
         return macdDailyRecommendationDao.getByDateDesc(type,dateStr);
     }
 }
